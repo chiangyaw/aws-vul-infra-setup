@@ -14,7 +14,7 @@ data "aws_ami" "aws_ubuntu" {
 resource "aws_instance" "ubuntu_instance" {
   ami                         = data.aws_ami.aws_ubuntu.id
   instance_type               = "t3.large"
-  subnet_id                   = aws_subnet.main_subnet[0].id
+  subnet_id                   = aws_subnet.main_subnet_a.id
   key_name                    = "keypair"
   associate_public_ip_address = "true"
   vpc_security_group_ids      = [aws_security_group.ubuntu_sg.id]

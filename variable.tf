@@ -1,6 +1,5 @@
 variable "unique_prefix" {
   description = "Name that will be used as prefix for all the resources deployed"
-  default     = "chiangyaw"
 }
 
 provider "aws" {
@@ -9,7 +8,7 @@ provider "aws" {
 }
 
 variable "region" {
-  default = "ap-southeast-2"
+    description = "region that you will be deploying your resources"
 }
 
 data "aws_availability_zones" "azs" {

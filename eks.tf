@@ -21,7 +21,7 @@ resource "aws_eks_cluster" "eks_cluster" {
  name = "${var.unique_prefix}-eks-cluster"
  role_arn = aws_iam_role.eks_cluster_role.arn
  vpc_config {
-  subnet_ids = aws_subnet.main_subnet[*].id
+  subnet_ids = [aws_subnet.main_subnet_a.id, aws_subnet.main_subnet_b.id]
   endpoint_public_access = true
   public_access_cidrs = ["0.0.0.0/0"]
  }
@@ -31,7 +31,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   cluster_name      = aws_eks_cluster.eks_cluster.name
   node_group_name   = "${var.unique_prefix}-workernodes"
   node_role_arn     = aws_iam_role.eks_node_role.arn
-  subnet_ids        = aws_subnet.main_subnet[*].id
+  subnet_ids        = [aws_subnet.main_subnet_a.id, aws_subnet.main_subnet_b.id]
   instance_types    = ["t3.xlarge"]
 
     tags = {
@@ -54,3 +54,28 @@ resource "aws_eks_cluster" "eks_cluster" {
   ]
 
  }
+
+# data "aws_eks_cluster_auth" "eks_auth" {
+#   name = aws_eks_cluster.eks_cluster.name
+# }
+
+# resource "kubernetes_manifest" "cdr_deploy" {
+#   manifest = yamldecode(data.http.cdr_yaml.body)
+# }
+
+# data "http" "cdr_yaml" {
+#   url = "https://raw.githubusercontent.com/hankthebldr/CDR/refs/heads/master/cdr.yml"
+# }
+
+resource "null_resource" "apply_cdr_yaml" {
+  depends_on = [aws_eks_node_group.worker_node_group]
+
+  provisioner "local-exec" {
+    command = <<EOT
+      aws eks update-kubeconfig --name ${aws_eks_cluster.eks_cluster.name} --region ${var.region}
+      kubectl apply -f https://raw.githubusercontent.com/hankthebldr/CDR/refs/heads/master/cdr.yml
+    EOT
+  }
+}
+
+
